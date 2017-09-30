@@ -4,7 +4,24 @@ function Query () {
     var valores = [];
 
     this.cargarDatos = function (linea) {
-        return;
+        nombre = this.obtenerNombre(linea);
+        valores = this.obtenerValores(linea);
+    }
+
+    this.getNombre = function () {
+        return nombre;
+    }
+
+    this.getValores = function () {
+        return valores;
+    }
+
+    this.obtenerNombre = function (linea) {
+        return linea.replace(/\(.*\)$/,"");
+    }
+
+    this.obtenerValores = function (linea) {
+        return [];
     }
 
     this.verificarParentesis = function (linea) {
@@ -23,39 +40,49 @@ function Query () {
 }
 
 function BaseDeDatos() {
+    //Atributos de la base de datos
     var hechos = [];
     var reglas = [];
     var respetaFormato = false;
 
+    //METODOS DE LA BASE DE DATOS
+
+    //Devuelve una lista con los hechos de la base de datos.
     this.getHechos = function () {
         return hechos;
     }
-
+    //Devuelve una lista con las reglas de la base de datos.
     this.getReglas = function () {
         return reglas;
     }
 
+    //Devuelve TRUE si la BDD tiene un formato correcto y FALSE sino.
     this.getValidez = function () {
         return respetaFormato;
     }
         
+    //Devuelve TRUE si la linea que recibe corresponde a una regla, FALSE sino.        
     this.esUnaRegla = function (linea) {
         if (linea.search(":-") != -1) {return true;}
         return false;
     }
 
+    //Agrega un HECHO a la base de datos para el posterior analisis.
     this.agregarUnHecho = function (linea) {
         hechos.push(linea);
     }
 
+    //Agrega una REGLA a la base de datos para el posterior analisis.
     this.agregarUnaRegla = function (linea) {
         reglas.push(linea);
     }
 
+    //Revisa si la linea que recibe como parametro cuenta con el punto al final.
     this.chequearPuntoFinal = function (cadena) {
         return cadena.endsWith(".");
     }
 
+    //Devuelve TRUE si la linea tiene parentesis de inicio y fin.
     this.chequearParentesis = function (cadena){
         if (cadena.search(/\(.*\)/) != -1) {
             return true;
@@ -63,16 +90,21 @@ function BaseDeDatos() {
         return false;
     }
 
+    //Recibe una linea y elimina el punto que se encuentra al final.
     this.quitarPuntoFinal = function (linea) {
         return linea.replace(".","");
     }
 
+    //Se encarga de verificar si TODAS las lineas cumplen con el formato pedido:
+    //  1. Si todas cuentan con el punto al final de la linea.
+    //  2. Si todas cuentan con parentesis de apertura y cierre.
     this.chequearFormatoDeLaBase = function (entrada) {
         var respetaPuntosFinales = entrada.every(this.chequearPuntoFinal);
         var respetaParentesis = entrada.every(this.chequearParentesis);
         respetaFormato = ((respetaPuntosFinales) && (respetaParentesis));
     }
 
+    //Esta funcion va agregando hechos y reglas a la base segun corresponda.
     this.armarHechosYReglas = function (entrada) {
         for (var i = 0; i < entrada.length; i++) {
             var elemento = entrada[i];
@@ -85,11 +117,27 @@ function BaseDeDatos() {
         } 
     }
 
+    //Funcion principal que pocesa el Stream que ingresa al sistema.
     this.procesarEntrada = function (entrada) {
         this.chequearFormatoDeLaBase(entrada);
         if (respetaFormato) {
             this.armarHechosYReglas(entrada);
         }
+    }
+
+    //Devuelve TRUE si la consulta corresponde a un HECHO.
+    this.consultaEsUnHecho = function (unaConsulta) {
+        return true;
+    }
+
+    //Resuelve la query contrastando contra los HECHOS de la base devolviendo TRUE o FALSE segun el exito obtenido.
+    this.resolverHecho = function (unaConsulta) {
+        return true;
+    }
+
+    //Resuelve la query pedida pero para el caso de una REGLA.
+    this.resolverRegla = function (unaConsulta) {
+        return true;
     }
 }
 
@@ -129,9 +177,11 @@ var Interpreter = function () {
         var consulta = new Query();
         if(bdd.getValidez() === false){return false;}
         if(consulta.chequearValidez(query) === false){return false;}
+        console.log(consulta.getNombre());
+        console.log(consulta.getValores());
         //RESOLVER LA QUERY
-        
-        return true;
+        if(bdd.consultaEsUnHecho(consulta)){bdd.resolverHecho(consulta);}
+        bdd.resolverRegla(consulta);
     }
 
 }
