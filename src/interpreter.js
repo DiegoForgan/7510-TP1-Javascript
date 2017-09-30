@@ -38,7 +38,7 @@ function BaseDeDatos() {
     this.getValidez = function () {
         return respetaFormato;
     }
-
+        
     this.esUnaRegla = function (linea) {
         if (linea.search(":-") != -1) {return true;}
         return false;
@@ -63,6 +63,10 @@ function BaseDeDatos() {
         return false;
     }
 
+    this.quitarPuntoFinal = function (linea) {
+        return linea.replace(".","");
+    }
+
     this.chequearFormatoDeLaBase = function (entrada) {
         var respetaPuntosFinales = entrada.every(this.chequearPuntoFinal);
         var respetaParentesis = entrada.every(this.chequearParentesis);
@@ -72,6 +76,7 @@ function BaseDeDatos() {
     this.armarHechosYReglas = function (entrada) {
         for (var i = 0; i < entrada.length; i++) {
             var elemento = entrada[i];
+            elemento = this.quitarPuntoFinal(elemento);
             if (this.esUnaRegla(elemento)) {
                 this.agregarUnaRegla(elemento);
             } else {
@@ -90,8 +95,7 @@ function BaseDeDatos() {
 
 var Interpreter = function () {
     var bdd = new BaseDeDatos();
-    //var query = new Query();
-
+//QUITARLO
      var db = [
         "varon(juan).",
         "varon(pepe).",
@@ -116,6 +120,9 @@ var Interpreter = function () {
     this.parseDB = function (userEntry) {
         var sinEspacios = db.map(this.quitarEspacios);
         bdd.procesarEntrada(db);
+        console.log(bdd.getHechos());
+        console.log(bdd.getReglas());
+        console.log(bdd.getValidez());
     }
 
     this.checkQuery = function (query) {
@@ -123,6 +130,7 @@ var Interpreter = function () {
         if(bdd.getValidez() === false){return false;}
         if(consulta.chequearValidez(query) === false){return false;}
         //RESOLVER LA QUERY
+        
         return true;
     }
 
