@@ -164,12 +164,40 @@ function BaseDeDatos() {
 
     //Devuelve TRUE si la consulta corresponde a un HECHO.
     this.consultaEsUnHecho = function (nombreDeConsulta) {
+        for (var i = 0; i < hechos.length; i++) {
+            var nombreActual = hechos[i].getNombre();
+            if (nombreActual === nombreDeConsulta){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    this.valoresSonIguales = function (valoresDelHecho, valoresDeLaConsulta) {
+        for (var i = 0; i < valoresDelHecho.length; i++) {
+            if (valoresDelHecho[i] != valoresDeLaConsulta[i]){
+                return false;
+            }
+        }
         return true;
     }
 
     //Resuelve la query contrastando contra los HECHOS de la base devolviendo TRUE o FALSE segun el exito obtenido.
     this.resolverHecho = function (unaConsulta) {
-        return true;
+        for (var i = 0; i < hechos.length; i++) {
+            var valoresDelHecho = hechos[i].getValores();
+            var valoresDeLaConsulta = unaConsulta.getValores();
+            if (valoresDelHecho.length != valoresDeLaConsulta.length){continue;}
+            var nombreDelHechoActual = hechos[i].getNombre();
+            if (nombreDelHechoActual === unaConsulta.getNombre()){
+                if (this.valoresSonIguales(valoresDelHecho,valoresDeLaConsulta)){
+                    console.log("CONSULTA SATISFACTORIA");
+                    return true;
+                }
+            }
+        }
+        console.log("CONSULTA NO SE ENCUENTRA EN LA BASE DE DATOS");
+        return false;
     }
 
     //Resuelve la query pedida pero para el caso de una REGLA.
@@ -214,13 +242,11 @@ var Interpreter = function () {
         var consulta = new Query();
         if(bdd.getValidez() === false){return false;}
         if(consulta.chequearValidez(query) === false){return false;}
-        console.log(consulta.getNombre());
-        console.log(consulta.getValores());
         //RESOLVER LA QUERY
         if(bdd.consultaEsUnHecho(consulta.getNombre()))
-            {bdd.resolverHecho(consulta);}
+            {return bdd.resolverHecho(consulta);}
         else
-            {bdd.resolverRegla(consulta);}
+            {return bdd.resolverRegla(consulta);}
     }
 
 }
