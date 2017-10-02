@@ -184,9 +184,9 @@ function BaseDeDatos() {
 
     //Resuelve la query contrastando contra los HECHOS de la base devolviendo TRUE o FALSE segun el exito obtenido.
     this.resolverHecho = function (unaConsulta) {
+        var valoresDeLaConsulta = unaConsulta.getValores();
         for (var i = 0; i < hechos.length; i++) {
             var valoresDelHecho = hechos[i].getValores();
-            var valoresDeLaConsulta = unaConsulta.getValores();
             if (valoresDelHecho.length != valoresDeLaConsulta.length){continue;}
             var nombreDelHechoActual = hechos[i].getNombre();
             if (nombreDelHechoActual === unaConsulta.getNombre()){
