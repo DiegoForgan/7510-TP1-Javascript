@@ -1,7 +1,7 @@
 function Query () {
     var respetaFormato = false;
     var nombre = "";
-    var valores = [];
+    var valores = new Array();
 
     this.cargarDatos = function (linea) {
         nombre = this.obtenerNombre(linea);
@@ -20,8 +20,15 @@ function Query () {
         return linea.replace(/\(.*\)$/,"");
     }
 
+    this.quitarEspacios = function (linea) {
+        return linea.trim();
+    }
+
     this.obtenerValores = function (linea) {
-        return [];
+        var sinParentesisIzquierdo = linea.replace(/.*\(/,"");
+        var sinParentesis = sinParentesisIzquierdo.replace(")","");
+        var valoresParseados = sinParentesis.split(",");
+        return (valoresParseados.map(this.quitarEspacios));
     }
 
     this.verificarParentesis = function (linea) {
@@ -39,10 +46,25 @@ function Query () {
 
 }
 
+function Hecho(nombreParseado, valoresParseados) {
+    var nombre = nombreParseado;
+    var valores = valoresParseados;
+
+    this.getNombre = function () {
+        return nombre;
+    }
+
+    this.getValores = function () {
+        return valores;
+    }
+
+    
+}
+
 function BaseDeDatos() {
     //Atributos de la base de datos
-    var hechos = [];
-    var reglas = [];
+    var hechos = new Array();
+    var reglas = new Array();
     var respetaFormato = false;
 
     //METODOS DE LA BASE DE DATOS
@@ -67,9 +89,24 @@ function BaseDeDatos() {
         return false;
     }
 
+    this.quitarEspacios = function (linea) {
+        return linea.trim();
+    }
+
+    this.obtenerNombreDelHechoORegla = function (linea) {
+        return linea.replace(/\(.*\)$/,"");
+    }
+
+    this.obtenerValoresDentroDelParentesis = function (linea) {
+        var sinParentesisIzquierdo = linea.replace(/.*\(/,"");
+        var sinParentesis = sinParentesisIzquierdo.replace(")","");
+        var valoresDelHecho = sinParentesis.split(",");
+        return (valoresDelHecho.map(this.quitarEspacios));
+    }
+
     //Agrega un HECHO a la base de datos para el posterior analisis.
     this.agregarUnHecho = function (linea) {
-        hechos.push(linea);
+        hechos.push(new Hecho(this.obtenerNombreDelHechoORegla(linea),this.obtenerValoresDentroDelParentesis(linea)));
     }
 
     //Agrega una REGLA a la base de datos para el posterior analisis.
@@ -126,7 +163,7 @@ function BaseDeDatos() {
     }
 
     //Devuelve TRUE si la consulta corresponde a un HECHO.
-    this.consultaEsUnHecho = function (unaConsulta) {
+    this.consultaEsUnHecho = function (nombreDeConsulta) {
         return true;
     }
 
@@ -180,8 +217,10 @@ var Interpreter = function () {
         console.log(consulta.getNombre());
         console.log(consulta.getValores());
         //RESOLVER LA QUERY
-        if(bdd.consultaEsUnHecho(consulta)){bdd.resolverHecho(consulta);}
-        bdd.resolverRegla(consulta);
+        if(bdd.consultaEsUnHecho(consulta.getNombre()))
+            {bdd.resolverHecho(consulta);}
+        else
+            {bdd.resolverRegla(consulta);}
     }
 
 }
