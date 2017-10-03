@@ -96,6 +96,10 @@ function Regla(lineaCompleta,nombreDeLaRegla) {
         }
         lineaConValores = aux;
     }
+
+    this.generarHechos = function () {
+        //ACA HAY QUE GENERAR LA LISTA DE OBJETOS HECHO PARA PODER EVALUARLOS, ES LO UNICO QUE FALTA.
+    }
 }
 
 function BaseDeDatos() {
@@ -244,6 +248,9 @@ function BaseDeDatos() {
             var nombreDeLaRegla = reglas[i].getNombre();
             if(nombreDeLaRegla === nombreDeConsulta){
                 reglas[i].reemplazarValoresEnLaRegla(unaConsulta.getValores());
+                reglas[i].generarHechos();
+                var listaDeHechos = reglas[i].getHechosQueComponenLaRegla();
+                return listaDeHechos.every(this.resolverHecho);
             }
         }
         return false;
