@@ -83,8 +83,8 @@ function Regla(lineaCompleta,nombreDeLaRegla) {
     }
 
     this.obtenerSimbolosDeLaRegla = function () {
-        simbolos = linea.replace(/^.*\(/,"");
-        simbolos = simbolos.replace(/\).*$/,"");
+        simbolos = linea.replace(/\).*$/,"");
+        simbolos = simbolos.replace(/.*\(/,"");
         simbolos = simbolos.split(",");
         simbolos = simbolos.map(this.quitarEspacios);
     }
@@ -97,8 +97,35 @@ function Regla(lineaCompleta,nombreDeLaRegla) {
         lineaConValores = aux;
     }
 
+    
+    this.quitarEspacios = function (linea) {
+        return linea.trim();
+    }
+
+    this.obtenerNombreDelHecho = function (linea) {
+        var nombreHecho = linea.replace(/\(.*$/,"");
+        return this.quitarEspacios(nombreHecho);
+    }
+
+    this.obtenerValoresDentroDelParentesis = function (linea) {
+        var aux = linea.replace(/.*\(/,"");
+        aux = aux.replace(")","");
+        aux = aux.split(",");
+        return (aux.map(this.quitarEspacios));
+    }
+
     this.generarHechos = function () {
         //ACA HAY QUE GENERAR LA LISTA DE OBJETOS HECHO PARA PODER EVALUARLOS, ES LO UNICO QUE FALTA.
+        var hechosAUX = [];
+        console.log(lineaConValores);
+        lineaConValores = lineaConValores.replace(/^.*:-/,"");
+        hechosAUX = lineaConValores.split("),");
+        for (var i = 0; i < hechosAUX.length; i++) {
+            var hechoActual = hechosAUX[i];
+            var nombreDelHechoActual = this.obtenerNombreDelHecho(hechoActual);
+            var valoresDelHecho = this.obtenerValoresDentroDelParentesis(hechoActual);
+            hechos.push(new Hecho(nombreDelHechoActual,valoresDelHecho));
+        }
     }
 }
 
@@ -216,13 +243,29 @@ function BaseDeDatos() {
         return false;
     }
 
-    this.valoresSonIguales = function (valoresDelHecho, valoresDeLaConsulta) {
+    this.SonIguales = function (valoresDelHecho, valoresDeLaConsulta) {
         for (var i = 0; i < valoresDelHecho.length; i++) {
             if (valoresDelHecho[i] != valoresDeLaConsulta[i]){
                 return false;
             }
         }
         return true;
+    }
+
+     //Resuelve la query pedida pero para el caso de una REGLA.
+    this.resolverRegla = function (unaConsulta) {
+        var nombreDeConsulta = unaConsulta.getNombre();
+        for (var i = 0; i < reglas.length; i++) {
+            var nombreDeLaRegla = reglas[i].getNombre();
+            if(nombreDeLaRegla === nombreDeConsulta){
+                reglas[i].reemplazarValoresEnLaRegla(unaConsulta.getValores());
+                reglas[i].generarHechos();
+                var listaDeHechos = reglas[i].getHechosQueComponenLaRegla();
+                console.log("VOY A CHEQUEAR TODOS LOS HECHOS");
+                return listaDeHechos.every(this.resolverHecho);
+            }
+        }
+        return false;
     }
 
     //Resuelve la query contrastando contra los HECHOS de la base devolviendo TRUE o FALSE segun el exito obtenido.
@@ -233,7 +276,9 @@ function BaseDeDatos() {
             if (valoresDelHecho.length != valoresDeLaConsulta.length){continue;}
             var nombreDelHechoActual = hechos[i].getNombre();
             if (nombreDelHechoActual === unaConsulta.getNombre()){
-                if (this.valoresSonIguales(valoresDelHecho,valoresDeLaConsulta)){
+                console.log(valoresDelHecho);
+                console.log(valoresDeLaConsulta);
+                if (this.SonIguales(valoresDelHecho,valoresDeLaConsulta)){
                     return true;
                 }
             }
@@ -241,20 +286,7 @@ function BaseDeDatos() {
         return false;
     }
 
-    //Resuelve la query pedida pero para el caso de una REGLA.
-    this.resolverRegla = function (unaConsulta) {
-        var nombreDeConsulta = unaConsulta.getNombre();
-        for (var i = 0; i < reglas.length; i++) {
-            var nombreDeLaRegla = reglas[i].getNombre();
-            if(nombreDeLaRegla === nombreDeConsulta){
-                reglas[i].reemplazarValoresEnLaRegla(unaConsulta.getValores());
-                reglas[i].generarHechos();
-                var listaDeHechos = reglas[i].getHechosQueComponenLaRegla();
-                return listaDeHechos.every(this.resolverHecho);
-            }
-        }
-        return false;
-    }
+   
 }
 
 var Interpreter = function () {
