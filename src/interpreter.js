@@ -61,6 +61,43 @@ function Hecho(nombreParseado, valoresParseados) {
     
 }
 
+function Regla(lineaCompleta,nombreDeLaRegla) {
+    var linea = lineaCompleta;
+    var nombre = nombreDeLaRegla;
+    var hechos = new Array();
+    var simbolos = new Array();
+    var lineaConValores = "";
+    
+
+    this.getNombre = function () {
+        return nombre;
+    }
+
+    this.getHechosQueComponenLaRegla = function () {
+        return hechos;
+    }
+
+
+    this.quitarEspacios =function (elemento) {
+        return elemento.trim();
+    }
+
+    this.obtenerSimbolosDeLaRegla = function () {
+        simbolos = linea.replace(/^.*\(/,"");
+        simbolos = simbolos.replace(/\).*$/,"");
+        simbolos = simbolos.split(",");
+        simbolos = simbolos.map(this.quitarEspacios);
+    }
+
+    this.reemplazarValoresEnLaRegla = function (listaDeValores){
+        var aux = linea;
+        for (var i = 0; i < simbolos.length; i++) {
+            aux = aux.replace(new RegExp (simbolos[i],'g'),listaDeValores[i]);
+        }
+        lineaConValores = aux;
+    }
+}
+
 function BaseDeDatos() {
     //Atributos de la base de datos
     var hechos = new Array();
@@ -94,7 +131,7 @@ function BaseDeDatos() {
     }
 
     this.obtenerNombreDelHechoORegla = function (linea) {
-        return linea.replace(/\(.*\)$/,"");
+        return linea.replace(/\(.*$/,"");
     }
 
     this.obtenerValoresDentroDelParentesis = function (linea) {
@@ -111,7 +148,9 @@ function BaseDeDatos() {
 
     //Agrega una REGLA a la base de datos para el posterior analisis.
     this.agregarUnaRegla = function (linea) {
-        reglas.push(linea);
+        var nuevaRegla = new Regla(linea,this.obtenerNombreDelHechoORegla(linea));
+        nuevaRegla.obtenerSimbolosDeLaRegla();
+        reglas.push(nuevaRegla);
     }
 
     //Revisa si la linea que recibe como parametro cuenta con el punto al final.
@@ -191,18 +230,23 @@ function BaseDeDatos() {
             var nombreDelHechoActual = hechos[i].getNombre();
             if (nombreDelHechoActual === unaConsulta.getNombre()){
                 if (this.valoresSonIguales(valoresDelHecho,valoresDeLaConsulta)){
-                    console.log("CONSULTA SATISFACTORIA");
                     return true;
                 }
             }
         }
-        console.log("CONSULTA NO SE ENCUENTRA EN LA BASE DE DATOS");
         return false;
     }
 
     //Resuelve la query pedida pero para el caso de una REGLA.
     this.resolverRegla = function (unaConsulta) {
-        return true;
+        var nombreDeConsulta = unaConsulta.getNombre();
+        for (var i = 0; i < reglas.length; i++) {
+            var nombreDeLaRegla = reglas[i].getNombre();
+            if(nombreDeLaRegla === nombreDeConsulta){
+                reglas[i].reemplazarValoresEnLaRegla(unaConsulta.getValores());
+            }
+        }
+        return false;
     }
 }
 
@@ -233,9 +277,6 @@ var Interpreter = function () {
     this.parseDB = function (userEntry) {
         var sinEspacios = db.map(this.quitarEspacios);
         bdd.procesarEntrada(db);
-        console.log(bdd.getHechos());
-        console.log(bdd.getReglas());
-        console.log(bdd.getValidez());
     }
 
     this.checkQuery = function (query) {
