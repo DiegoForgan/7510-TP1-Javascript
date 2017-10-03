@@ -45,7 +45,7 @@ function Query () {
     }
 
 }
-
+/////////////////////////////////////////////////////////////////////////////////////////////////////
 function Hecho(nombreParseado, valoresParseados) {
     var nombre = nombreParseado;
     var valores = valoresParseados;
@@ -60,14 +60,13 @@ function Hecho(nombreParseado, valoresParseados) {
 
     
 }
-
+///////////////////////////////////////////////////////////////////////////////////////////////////////
 function Regla(lineaCompleta,nombreDeLaRegla) {
     var linea = lineaCompleta;
     var nombre = nombreDeLaRegla;
     var hechos = new Array();
     var simbolos = new Array();
     var lineaConValores = "";
-    
 
     this.getNombre = function () {
         return nombre;
@@ -97,7 +96,6 @@ function Regla(lineaCompleta,nombreDeLaRegla) {
         lineaConValores = aux;
     }
 
-    
     this.quitarEspacios = function (linea) {
         return linea.trim();
     }
@@ -115,7 +113,6 @@ function Regla(lineaCompleta,nombreDeLaRegla) {
     }
 
     this.generarHechos = function () {
-        //ACA HAY QUE GENERAR LA LISTA DE OBJETOS HECHO PARA PODER EVALUARLOS, ES LO UNICO QUE FALTA.
         var hechosAUX = [];
         console.log(lineaConValores);
         lineaConValores = lineaConValores.replace(/^.*:-/,"");
@@ -128,7 +125,7 @@ function Regla(lineaCompleta,nombreDeLaRegla) {
         }
     }
 }
-
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
 function BaseDeDatos() {
     //Atributos de la base de datos
     var hechos = new Array();
@@ -165,6 +162,7 @@ function BaseDeDatos() {
         return linea.replace(/\(.*$/,"");
     }
 
+    //Obtiene los valores que se encuentran expresados dentro del parentesis
     this.obtenerValoresDentroDelParentesis = function (linea) {
         var sinParentesisIzquierdo = linea.replace(/.*\(/,"");
         var sinParentesis = sinParentesisIzquierdo.replace(")","");
@@ -243,6 +241,7 @@ function BaseDeDatos() {
         return false;
     }
 
+    //Verifica si ambas listas son iguales en su totalidad.
     this.SonIguales = function (valoresDelHecho, valoresDeLaConsulta) {
         for (var i = 0; i < valoresDelHecho.length; i++) {
             if (valoresDelHecho[i] != valoresDeLaConsulta[i]){
@@ -288,7 +287,7 @@ function BaseDeDatos() {
 
    
 }
-
+//////////////////////////////////////////////////////////////////////////////////////////////////////
 var Interpreter = function () {
     var bdd = new BaseDeDatos();
 //QUITARLO
