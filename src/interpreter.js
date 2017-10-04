@@ -28,7 +28,6 @@ function Regla(linea) {
 
     this.obtenerSimbolosDeLaRegla = function (linea) {
         simbolos = obtenerElementosDentroDelPrimerParentesis(linea);
-        console.log(simbolos);
     }
 
     this.reemplazarValoresEnLaRegla = function (listaDeValores){
@@ -115,10 +114,6 @@ function BaseDeDatos() {
                 this.agregarUnHecho(elemento);   
             }   
         }
-        console.log(hechos);
-        console.log(hechosDisponibles);
-        console.log(reglas);
-        console.log(reglasDisponibles); 
     }
 
     //Revisa si la linea que recibe como parametro cuenta con el punto al final.
