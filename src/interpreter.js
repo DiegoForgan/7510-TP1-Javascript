@@ -56,9 +56,7 @@ function Regla(linea) {
 
     this.obtenerListaDeHechosConValoresReemplazados = function (listaDeValores) {
         var reglaConValoresReemplzados = this.reemplazarValoresEnLaRegla(listaDeValores);
-        var aux = this.obtenerHechos(reglaConValoresReemplzados);
-        console.log(aux);
-        return aux;
+        return this.obtenerHechos(reglaConValoresReemplzados);
     }
 }
 
@@ -200,7 +198,6 @@ var Interpreter = function () {
     }
 
     this.checkQuery = function (query) {
-        //var consulta = new Query();
         if(bdd.getValidez() === false){return false;}
         if(bdd.chequearFormatoDeLaConsulta(query) === false){return false;}
         //RESOLVER LA QUERY
