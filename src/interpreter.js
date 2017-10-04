@@ -1,3 +1,68 @@
+function quitarEspacios(cadena) {
+    return cadena.trim();
+}
+
+function obtenerNombre(linea) {
+    return linea.replace(/\(.*$/,"");
+}
+
+function obtenerElementosDentroDelPrimerParentesis(linea) {
+    var aux = linea.replace(/\).*$/,"");
+    aux = aux.replace(/.*\(/,"");
+    aux = aux.split(",");
+    return (aux.map(quitarEspacios));
+}
+
+function Regla(linea) {
+    var reglaCompleta = linea;
+    var listaDeHechos = new Array();
+    var simbolos = new Array();
+
+    this.getHechos = function () {
+        return listaDeHechos;
+    }
+
+    this.getNombre = function () {
+        return obtenerNombre(reglaCompleta);
+    }
+
+    this.obtenerSimbolosDeLaRegla = function (linea) {
+        simbolos = obtenerElementosDentroDelPrimerParentesis(linea);
+        console.log(simbolos);
+    }
+
+    this.reemplazarValoresEnLaRegla = function (listaDeValores){
+        var aux = reglaCompleta;
+        for (var i = 0; i < simbolos.length; i++) {
+            aux = aux.replace(new RegExp (simbolos[i],'g'),listaDeValores[i]);
+        }
+        return aux;
+    }
+
+    this.obtenerHechos = function (reglaConValores) {
+        var hechosAUX = [];
+        reglaConValores = reglaConValores.replace(/^.*:-/,"");
+        hechosAUX = reglaConValores.split("),");
+        for (var i = 0; i < hechosAUX.length; i++) {
+            if (hechosAUX[i].endsWith(")")){
+                continue;
+            }
+            else{
+                hechosAUX[i] = hechosAUX[i].concat(")");
+            }
+        }
+        return hechosAUX.map(quitarEspacios);
+    }
+
+    this.obtenerListaDeHechosConValoresReemplazados = function (listaDeValores) {
+        var reglaConValoresReemplzados = this.reemplazarValoresEnLaRegla(listaDeValores);
+        var aux = this.obtenerHechos(reglaConValoresReemplzados);
+        console.log(aux);
+        return aux;
+    }
+}
+
+
 function BaseDeDatos() {
     //Atributos de la base de datos
     var hechos = new Array();
@@ -9,11 +74,7 @@ function BaseDeDatos() {
     this.getValidez = function () {
         return respetaFormato;
     }
-
-    this.obtenerNombre = function (linea) {
-        return linea.replace(/\(.*$/,"");
-    }
-
+    
     //Recibe una linea y elimina el punto que se encuentra al final.
     this.quitarPuntoFinal = function (linea) {
         return linea.replace(".","");
@@ -27,16 +88,22 @@ function BaseDeDatos() {
 
     //Agrega una REGLA a la base de datos para el posterior analisis.
     this.agregarUnaRegla = function (linea) {
-        //var nuevaRegla = new Regla(linea,this.obtenerNombreDelHechoORegla(linea));
-        //nuevaRegla.obtenerSimbolosDeLaRegla();
-        //reglas.push(nuevaRegla);
-        reglasDisponibles.push(this.obtenerNombre(linea));
+        var nuevaRegla = new Regla(linea);
+        nuevaRegla.obtenerSimbolosDeLaRegla(linea);
+        reglas.push(nuevaRegla);
+        var nombreDeLaRegla = obtenerNombre(linea);
+        if (reglasDisponibles.indexOf(nombreDeLaRegla) == -1){
+            reglasDisponibles.push(nombreDeLaRegla);
+        }
     }
 
     //Agrega un HECHO a la base de datos para el posterior analisis.
     this.agregarUnHecho = function (linea) {
         hechos.push(linea.replace(".",""));
-        hechosDisponibles.push(this.obtenerNombre(linea));
+        var nombreDelHecho = obtenerNombre(linea);
+        if (hechosDisponibles.indexOf(nombreDelHecho) == -1){
+            hechosDisponibles.push(nombreDelHecho);
+        }
     }
     
     //Esta funcion va agregando hechos y reglas a la base segun corresponda.
@@ -93,7 +160,6 @@ function BaseDeDatos() {
     //Devuelve TRUE si la consulta corresponde a un HECHO.
     this.consultaEsUnHecho = function (nombreConsulta) {
         for (var i = 0; i < hechosDisponibles.length; i++) {
-            console.log("estoy comparando " + nombreConsulta + "con " + hechosDisponibles[i]);
             if (nombreConsulta === hechosDisponibles[i]){
                 return true;
             }
@@ -104,43 +170,33 @@ function BaseDeDatos() {
     this.resolverHecho = function (consulta) {
         for (var i = 0; i < hechos.length; i++) {
             if (consulta === hechos[i]){
-                console.log("FOUND!!!!!!!!!!");
                 return true;
             }
         }
-        console.log(":( NOT FOUND!!!!!!!!!!");
         return false;
+    }
+
+    this.resolverRegla = function (consulta) {
+        var valoresDeLaConsulta = obtenerElementosDentroDelPrimerParentesis(consulta);
+        var hechosAResolver = this.obtenerHechosAPartirDeLaConsulta(obtenerNombre(consulta),obtenerElementosDentroDelPrimerParentesis(consulta));
+        return (hechosAResolver.every(this.resolverHecho));
+    }
+
+    this.obtenerHechosAPartirDeLaConsulta = function (nombreConsulta,valoresConsulta) {
+        for (var i = 0; i < reglas.length; i++) {
+            if(reglas[i].getNombre() === nombreConsulta){
+                return reglas[i].obtenerListaDeHechosConValoresReemplazados(valoresConsulta);
+            }
+        }
     }
    
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 var Interpreter = function () {
     var bdd = new BaseDeDatos();
-//QUITARLO
-     var db = [
-        "varon(juan).",
-        "varon(pepe).",
-        "varon(hector).",
-        "varon(roberto).",
-        "varon(alejandro).",
-        "mujer(maria).",
-        "mujer(cecilia).",
-        "padre(juan, pepe).",
-        "padre(juan, pepa).",
-        "padre(hector, maria).",
-        "padre(roberto, alejandro).",
-        "padre(roberto, cecilia).",
-        "hijo(X, Y) :- varon(X), padre(Y, X).",
-        "hija(X, Y) :- mujer(X), padre(Y, X)."
-    ];
     
-    this.quitarEspacios = function (linea) {
-        return linea.trim();
-    }
-
     this.parseDB = function (userEntry) {
-        var sinEspacios = db.map(this.quitarEspacios);
-        bdd.procesarEntrada(db);
+        bdd.procesarEntrada(userEntry);
     }
 
     this.checkQuery = function (query) {
@@ -148,7 +204,7 @@ var Interpreter = function () {
         if(bdd.getValidez() === false){return false;}
         if(bdd.chequearFormatoDeLaConsulta(query) === false){return false;}
         //RESOLVER LA QUERY
-        if(bdd.consultaEsUnHecho(bdd.obtenerNombre(query)))
+        if(bdd.consultaEsUnHecho(obtenerNombre(query)))
             {return bdd.resolverHecho(query);}
         else
             {return bdd.resolverRegla(query);}
